@@ -11,19 +11,38 @@ import (
 )
 
 func main() {
-	filePath := flag.String("file", "", "Path to YAML file")
-	flag.Parse()
-	var content []byte
+	var isJson bool
 
-	if *filePath != "" {
-		fmt.Println("FilePath: ", *filePath)
-		fileContent,err := os.ReadFile(*filePath)
+	ymlfilePath := flag.String("yml", "", "Path to YAML file")
+	jsonfilePath := flag.String("jso", "", "Path to json file")
+	flag.Parse()
+	var ymlcontent []byte
+	var jsoncontent []byte
+
+
+	if *ymlfilePath != "" {
+		fmt.Println("FilePath: ", *ymlfilePath)
+		fileContent,err := os.ReadFile(*ymlfilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(string(fileContent))
-		content = fileContent
+		ymlcontent = fileContent
+		isJson = false
 	}
+
+	if *jsonfilePath != "" {
+		fmt.Println("FilePath: ", *jsonfilePath)
+		fileContent,err := os.ReadFile(*jsonfilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(fileContent))
+		jsoncontent = fileContent
+		isJson = true
+	}
+
+	
 
 
 
@@ -44,7 +63,17 @@ func main() {
 // - path: /urlshort-final
 //   url: https://github.com/gophercises/urlshort/tree/solution
 
-	yamlHandler, err := urlshort.YAMLHandler([]byte(content), mapHandler)
+	if isJson {
+		jsonHandler, err := urlshort.JSONHandler([]byte(jsoncontent), mapHandler)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Starting the server on :8080")
+		http.ListenAndServe(":8080", jsonHandler)
+	}
+
+
+	yamlHandler, err := urlshort.YAMLHandler([]byte(ymlcontent), mapHandler)
 	if err != nil {
 		panic(err)
 	}

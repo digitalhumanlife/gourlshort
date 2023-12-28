@@ -1,6 +1,8 @@
 package urlshort
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
@@ -44,11 +46,33 @@ type YamlData []struct{
 	URL string `yaml:"url"`
 }
 
+type JsonData [] struct {
+	Path string `json:"path"`
+	URL string `json:"url"`
+}
+
 func YAMLHandler(yml []byte, fallback http.Handler) (http.HandlerFunc, error) {
 	parsedYML,_ := parseYML(yml)
 	pathMap := buildMap(parsedYML)
 	return MapHandler(pathMap, fallback),nil
 }
+
+func JSONHandler(jsonByte []byte, fallback http.Handler) (http.HandlerFunc, error){
+	var jsonData JsonData
+	err := json.Unmarshal([]byte(jsonByte), &jsonData)
+	if err != nil {
+		fmt.Println("Error decoding JSON: ", err)
+		return nil, err
+	}
+
+	pathJson := make(map[string]string)
+	for _, pd := range jsonData {
+		pathJson[pd.Path] = pd.URL
+	}
+	return MapHandler(pathJson, fallback), nil
+}
+
+
 
 func parseYML(yml []byte) (YamlData, error){
 	var ymlData YamlData
